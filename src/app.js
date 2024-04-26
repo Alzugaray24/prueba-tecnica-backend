@@ -1,3 +1,4 @@
+// app.js
 import express from "express";
 import __dirname from "./dirname.js";
 import cookieParser from "cookie-parser";
