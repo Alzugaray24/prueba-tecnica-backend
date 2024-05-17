@@ -8,9 +8,9 @@ import CustomRouter from "./custom.router.js";
 
 export default class ProductExtendRouter extends CustomRouter {
   init() {
-    this.get("/", ["ADMIN"], getProductController);
-    this.post("/", ["ADMIN"], postProductController);
-    this.put("/:id", ["ADMIN"], putProductController);
-    this.delete("/:id", ["ADMIN"], deleteProductController);
+    this.get("/", ["PUBLIC"], getProductController);
+    this.post("/", ["PUBLIC"], postProductController);
+    this.put("/:id", ["PUBLIC"], putProductController);
+    this.delete("/:id", ["PUBLIC"], deleteProductController);
   }
 }

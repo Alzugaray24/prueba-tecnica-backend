@@ -1,63 +1,66 @@
-import { cartService, productService } from "../services/service.js";
-import ProductDTO from "../services/dto/product.dto.js";
-import { userService } from "../services/service.js";
-import { sendDeletedProdEmail } from "../dirname.js";
+import { prodService } from "../services/services.js";
 
 export const getProductController = async (req, res) => {
-  try {
-    const validationErrors = ProductDTO.validateForRead();
-
-    if (validationErrors.length > 0) {
-      req.logger.error(
-        `[${new Date().toLocaleString()}] [GET] ${
-          req.originalUrl
-        } error al obtener los productos`
-      );
-      return res.status(400).json({ errors: validationErrors });
-    }
-
-    const products = await productService.getAll();
-    req.logger.info(
-      `[${new Date().toLocaleString()}] [GET] ${
-        req.originalUrl
-      } - Productos obtenidos con éxito:`,
-      products
-    );
-
-    return products;
-  } catch (error) {
+  const products = await prodService.getAll();
+  if (!products) {
     req.logger.error(
-      `[${new Date().toLocaleString()}] [GET] ${
+      `[${new Date().toLocaleString()}] [POST] ${
         req.originalUrl
-      } - Error al obtener los productos:`,
-      error
+      } - No existen productos en la base de datos`
     );
-    res.status(500).json({ error: "Error interno del servidor." });
+    return res
+      .status(400)
+      .json({ error: "No existen productos en la base de datos" });
   }
+
+  res.status(200).send({
+    status: "success",
+    products,
+  });
 };
 
 export const postProductController = async (req, res) => {
   try {
-    const { title, description, price, thumbnail, code, stock } = req.body;
-    const productData = { title, description, price, thumbnail, code, stock };
-    const validationErrors = await ProductDTO.validateForCreate(productData);
+    const {
+      handle,
+      title,
+      description,
+      sku,
+      grams,
+      stock,
+      price,
+      compare_price,
+      barcode,
+    } = req.body;
+    const productData = {
+      handle,
+      title,
+      description,
+      sku,
+      grams,
+      stock,
+      price,
+      compare_price,
+      barcode,
+    };
 
-    if (validationErrors.length > 0) {
+    const product = await prodService.save(productData);
+
+    if (!product) {
       req.logger.error(
-        `[${new Date().toLocaleString()}] [GET] ${
+        `[${new Date().toLocaleString()}] [POST] ${
           req.originalUrl
-        } error al crear un producto`
+        } - No existe el producto`
       );
-      return res.status(400).json({ errors: validationErrors });
+      return res.status(400).json({ error: "No existe el producto" });
     }
 
-    const result = await productService.save(productData);
     req.logger.info(
       `[${new Date().toLocaleString()}] [POST] ${
         req.originalUrl
       } - Producto creado con éxito`
     );
-    return res.status(201).json({ status: "success", payload: result });
+    return res.status(201).json({ status: "success", payload: product });
   } catch (error) {
     req.logger.error(
       `[${new Date().toLocaleString()}] [POST] ${
@@ -74,17 +77,10 @@ export const putProductController = async (req, res) => {
     const { id } = req.params;
     const newProduct = req.body;
 
-    const validationErrors = ProductDTO.validateForUpdate(newProduct);
-    if (validationErrors.length > 0) {
-      req.logger.error(
-        `[${new Date().toLocaleString()}] [GET] ${
-          req.originalUrl
-        } error al actualizar los productos`
-      );
-      return res.status(400).json({ errors: validationErrors });
-    }
+    console.log(id);
+    console.log(newProduct);
 
-    const updatedProduct = await productService.update(id, newProduct);
+    const updatedProduct = await prodService.update(id, newProduct);
 
     if (!updatedProduct) {
       req.logger.error(
@@ -102,6 +98,7 @@ export const putProductController = async (req, res) => {
         req.originalUrl
       } - Producto actualizado con éxito`
     );
+
     return res.status(200).json({ status: "success", updatedProduct });
   } catch (error) {
     req.logger.error(
@@ -118,64 +115,26 @@ export const deleteProductController = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const users = await userService.getAll();
+    const deletedProd = await prodService.delete(id);
 
-    const usersPremium = users.items.filter(
-      (user) => user.role === "user_premium"
-    );
-
-    for (const user of usersPremium) {
-      for (const cartId of user.cart) {
-        const cart = await cartService.findById(cartId);
-        for (const prod of cart.products) {
-          if (prod._id.toString() === id) {
-            await sendDeletedProdEmail(user.email);
-            req.logger.info(
-              `[${new Date().toLocaleString()}] Se eliminó un producto del carrito del usuario premium`
-            );
-          }
-        }
-      }
-    }
-
-    const deletedProductId = await productService.delete(id);
-
-    if (!deletedProductId) {
+    if (!deletedProd) {
       req.logger.error(
         `[${new Date().toLocaleString()}] [DELETE] ${
           req.originalUrl
-        } - Producto no encontrado para eliminar`
+        } - No se pudo eliminar el producto`
       );
-      return res
-        .status(404)
-        .json({ error: "Producto no encontrado para eliminar" });
+      return res.status(404).json({ error: "No se pudo eliminar el producto" });
     }
 
-    for (const user of users.items) {
-      for (const cartId of user.cart) {
-        const cart = await cartService.findById(cartId);
-        if (
-          cart &&
-          cart.products.some(
-            (product) => product._id.toString() === deletedProductId.toString()
-          )
-        ) {
-          cart.products = cart.products.filter(
-            (product) => product._id.toString() !== deletedProductId.toString()
-          );
-          await cartService.update(cartId, { products: cart.products });
-        }
-      }
-    }
-
-    return res
-      .status(201)
-      .json({ status: "success", deleted: `Producto eliminado exitosamente` });
+    return res.status(200).send({
+      status: "success",
+      msg: `Producto con id ${id} eliminado con exito`,
+    });
   } catch (error) {
     req.logger.error(
-      `[${new Date().toLocaleString()}] [DELETE] ${
+      `[${new Date().toLocaleString()}] [PUT] ${
         req.originalUrl
-      } - Error al eliminar el producto:`,
+      } - Error al actualizar el producto:`,
       error
     );
     return res.status(500).json({ error: "Error interno del servidor." });
