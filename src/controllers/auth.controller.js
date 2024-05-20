@@ -6,36 +6,26 @@ export const registerUserController = async (req, res) => {
     const { first_name, last_name, email, age, password } = req.body;
 
     if (!first_name || !last_name || !email || !age || !password) {
-      req.logger.error(
-        `[${new Date().toLocaleString()}] [POST] ${
-          req.originalUrl
-        } - Todos los campos son obligatorios.`
-      );
       return res
         .status(400)
         .json({ error: "Todos los campos son obligatorios." });
     }
 
-    await userService.findByEmail(email);
+    const existingUser = await userService.findByEmail(email);
+    if (existingUser) {
+      return res
+        .status(400)
+        .json({ error: "El correo electrónico ya está en uso." });
+    }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      req.logger.error(
-        `[${new Date().toLocaleString()}] [POST] ${
-          req.originalUrl
-        } - Formato de correo electrónico inválido.`
-      );
       return res
         .status(400)
         .json({ error: "Formato de correo electrónico inválido." });
     }
 
     if (isNaN(age) || age < 1 || age > 150) {
-      req.logger.error(
-        `[${new Date().toLocaleString()}] [POST] ${
-          req.originalUrl
-        } - La edad debe ser un número válido.`
-      );
       return res
         .status(400)
         .json({ error: "La edad debe ser un número válido." });
@@ -43,32 +33,20 @@ export const registerUserController = async (req, res) => {
 
     const hashedPassword = createHash(password);
 
-    const newUser = await authService.save({
+    const newUser = {
       first_name,
       last_name,
       email,
       age,
       password: hashedPassword,
-    });
+      role: "USER",
+    };
 
-    req.logger.info(
-      `[${new Date().toLocaleString()}] [POST] ${
-        req.originalUrl
-      } - Usuario registrado con éxito:`,
-      newUser
-    );
+    await authService.save(newUser);
 
-    return res.status(201).json({
-      status: "Usuario creado con éxito",
-      usuario: newUser,
-    });
+    return res.status(201).json(newUser);
   } catch (error) {
-    req.logger.error(
-      `[${new Date().toLocaleString()}] [POST] ${
-        req.originalUrl
-      } - Error al registrar al usuario:`,
-      error
-    );
+    console.error("Error al registrar al usuario:", error);
     return res.status(500).json({ error: "Error interno del servidor." });
   }
 };
@@ -89,8 +67,6 @@ export const loginUserController = async (req, res) => {
     }
 
     const user = await authService.login(email);
-
-    console.log("aca", user);
 
     if (user === null || !isValidPassword(user, password)) {
       req.logger.error(

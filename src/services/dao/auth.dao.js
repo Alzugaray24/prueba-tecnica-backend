@@ -6,12 +6,22 @@ export default class AuthService {
   save = (user) => {
     try {
       const { first_name, last_name, email, age, password } = user;
+      const role = user.role || "USER";
 
       const query =
-        "INSERT INTO users (first_name, last_name, email, age, password) VALUES (?, ?, ?, ?, ?)";
-      db.run(query, [first_name, last_name, email, age, password]);
-
-      console.log("Usuario guardado con éxito");
+        "INSERT INTO users (first_name, last_name, email, age, password, role) VALUES (?, ?, ?, ?, ?, ?)";
+      db.run(
+        query,
+        [first_name, last_name, email, age, password, role],
+        function (err) {
+          if (err) {
+            console.error("Error al guardar usuario:", err.message);
+            throw err;
+          } else {
+            console.log("Usuario guardado con éxito, ID:", this.lastID);
+          }
+        }
+      );
     } catch (error) {
       console.error("Error al guardar usuario:", error.message);
       throw error;

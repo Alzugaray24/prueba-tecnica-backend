@@ -14,6 +14,7 @@ const db = new sqlite3.Database(dbName, (err) => {
         last_name TEXT,
         email TEXT UNIQUE,
         age INTEGER,
+        role TEXT DEFAULT 'USER',
         password TEXT
       )`,
       (err) => {

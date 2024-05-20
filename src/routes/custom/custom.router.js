@@ -12,13 +12,14 @@ export default class CustomRouter {
     return this.router;
   }
   init() {
-    this.router.use();
+    this.router.use(errorHandler);
   }
 
   get(path, policies, ...callbacks) {
     this.router.get(
       path,
       this.handlePolicies(policies),
+      this.generateCustomResponses,
       this.applyCallbacks(callbacks)
     );
   }
@@ -27,6 +28,7 @@ export default class CustomRouter {
     this.router.post(
       path,
       this.handlePolicies(policies),
+      this.generateCustomResponses,
       this.applyCallbacks(callbacks)
     );
   }
@@ -35,6 +37,7 @@ export default class CustomRouter {
     this.router.put(
       path,
       this.handlePolicies(policies),
+      this.generateCustomResponses,
       this.applyCallbacks(callbacks)
     );
   }
@@ -43,6 +46,7 @@ export default class CustomRouter {
     this.router.delete(
       path,
       this.handlePolicies(policies),
+      this.generateCustomResponses,
       this.applyCallbacks(callbacks)
     );
   }
@@ -50,6 +54,8 @@ export default class CustomRouter {
   handlePolicies = (policies) => async (req, res, next) => {
     try {
       if (policies[0] === "PUBLIC") return next();
+
+      console.log();
 
       const token = req.cookies.token;
 
@@ -93,6 +99,27 @@ export default class CustomRouter {
         cssFileName: "error.css",
       });
     }
+  };
+
+  generateCustomResponses = (req, res, next) => {
+    res.sendSuccess = (payload) =>
+      res.status(200).send({ status: "Success", payload });
+    res.sendInternalServerError = (error) =>
+      res.status(500).send({ status: "Error", error });
+    res.sendClientError = (error) =>
+      res
+        .status(400)
+        .send({ status: "Client Error, Bad request from client.", error });
+    res.sendUnauthorizedError = (error) =>
+      res
+        .status(401)
+        .send({ error: "User not authenticated or missing token." });
+    res.sendForbiddenError = (error) =>
+      res.status(403).send({
+        error:
+          "Token invalid or user with no access, Unauthorized please check your roles!",
+      });
+    next();
   };
 
   applyCallbacks(callbacks) {
