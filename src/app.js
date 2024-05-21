@@ -16,16 +16,14 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
 
 app.use(addLogger);
-
-export const getCookie = (req, res, next) => {
-  if (req.cookies.token) {
-    req.token = req.cookies.token;
-  }
-  next();
-};
 
 const usersExtendRouter = new UsersExtendRouter();
 const productExtendRouter = new ProductExtendRouter();
@@ -37,4 +35,6 @@ app.use("/api/extend/auth", authExtendRouter.getRouter());
 
 const port = process.env.PORT || config.port;
 
-app.listen(port, "0.0.0.0", console.log(`Server running on port ${port}`));
+app.listen(port, "0.0.0.0", () => {
+  console.log(`Server running on port ${port}`);
+});
