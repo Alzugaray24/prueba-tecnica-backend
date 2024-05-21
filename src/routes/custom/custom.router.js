@@ -1,6 +1,8 @@
 import { Router } from "express";
 import jwt from "jsonwebtoken";
+import cookieParser from "cookie-parser";
 import config from "../../config/config.js";
+import { getCookie } from "../../middlewars/getCookie.js";
 
 export default class CustomRouter {
   constructor() {
@@ -12,12 +14,14 @@ export default class CustomRouter {
     return this.router;
   }
   init() {
-    this.router.use(errorHandler);
+    this.router.use(cookieParser());
+    this.router.use(getCookie);
   }
 
   get(path, policies, ...callbacks) {
     this.router.get(
       path,
+      getCookie,
       this.handlePolicies(policies),
       this.generateCustomResponses,
       this.applyCallbacks(callbacks)
@@ -27,6 +31,7 @@ export default class CustomRouter {
   post(path, policies, ...callbacks) {
     this.router.post(
       path,
+      getCookie,
       this.handlePolicies(policies),
       this.generateCustomResponses,
       this.applyCallbacks(callbacks)
@@ -36,6 +41,7 @@ export default class CustomRouter {
   put(path, policies, ...callbacks) {
     this.router.put(
       path,
+      getCookie,
       this.handlePolicies(policies),
       this.generateCustomResponses,
       this.applyCallbacks(callbacks)
@@ -45,6 +51,7 @@ export default class CustomRouter {
   delete(path, policies, ...callbacks) {
     this.router.delete(
       path,
+      getCookie,
       this.handlePolicies(policies),
       this.generateCustomResponses,
       this.applyCallbacks(callbacks)
@@ -55,9 +62,7 @@ export default class CustomRouter {
     try {
       if (policies[0] === "PUBLIC") return next();
 
-      console.log();
-
-      const token = req.cookies.token;
+      const token = req.token;
 
       if (!token) {
         req.logger.info(

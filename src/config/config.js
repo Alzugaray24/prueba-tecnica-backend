@@ -29,4 +29,5 @@ export default {
   environment: mode,
   cookiePassword: process.env.COOKIEPASSWORD,
   privateKey: process.env.PRIVATE_KEY,
+  sessionPass: process.env.SESSION_SECRET,
 };
