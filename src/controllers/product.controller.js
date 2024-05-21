@@ -60,7 +60,7 @@ export const postProductController = async (req, res) => {
         req.originalUrl
       } - Producto creado con éxito`
     );
-    return res.status(201).json({ status: "success", payload: product });
+    return res.status(200).json({ status: "success", payload: product });
   } catch (error) {
     req.logger.error(
       `[${new Date().toLocaleString()}] [POST] ${

@@ -18,7 +18,6 @@ export default class UserService {
   };
 
   findByEmail = (email) => {
-    console.log("Correo electrónico buscado:", email);
     return new Promise((resolve, reject) => {
       const query = "SELECT * FROM users WHERE email = ?";
       db.get(query, [email], (err, row) => {
@@ -31,6 +30,27 @@ export default class UserService {
           } else {
             console.log(
               "No se encontró ningún usuario con el correo electrónico proporcionado."
+            );
+          }
+          resolve(row);
+        }
+      });
+    });
+  };
+
+  findUserById = (id) => {
+    return new Promise((resolve, reject) => {
+      const query = "SELECT * FROM users WHERE id = ?";
+      db.get(query, [id], (err, row) => {
+        if (err) {
+          console.error("Error al buscar usuario por ID:", err.message);
+          reject(err);
+        } else {
+          if (row) {
+            console.log("Usuario encontrado:", row);
+          } else {
+            console.log(
+              "No se encontró ningún usuario con el ID proporcionado."
             );
           }
           resolve(row);

@@ -1,4 +1,5 @@
 import { userService } from "../services/services.js";
+import { getUserIdFromToken } from "../dirname.js";
 
 export const getAllUsersController = async (req, res) => {
   try {
@@ -28,4 +29,26 @@ export const getAllUsersController = async (req, res) => {
     );
     return res.status(500).json({ error: "Error interno del servidor." });
   }
+};
+
+export const getUserController = async (req, res) => {
+  const token = req.token;
+
+  if (!token) {
+    req.logger.error(
+      `[${new Date().toLocaleString()}] [GET] ${
+        req.originalUrl
+      } - token inexistente`
+    );
+    return res.status(401).json({ error: "token inexistente" });
+  }
+
+  const userId = getUserIdFromToken(token);
+
+  const user = await userService.findUserById(userId);
+
+  res.status(200).send({
+    status: "success",
+    usuario: user,
+  });
 };

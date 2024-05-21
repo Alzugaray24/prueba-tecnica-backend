@@ -55,13 +55,13 @@ export const getUserIdFromToken = (token) => {
       throw new Error("Token de autenticación no proporcionado.");
     }
 
-    const decodedToken = jwt.verify(token, PRIVATE_KEY);
+    const decodedToken = jwt.verify(token, config.privateKey);
 
     if (!decodedToken) {
       throw new Error("Token de autenticación inválido.");
     }
 
-    const userId = decodedToken.user._id;
+    const userId = decodedToken.user.id;
 
     return userId;
   } catch (error) {

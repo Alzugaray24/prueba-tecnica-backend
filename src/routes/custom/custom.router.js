@@ -70,7 +70,9 @@ export default class CustomRouter {
             req.originalUrl
           } Usuario no autenticado o token inexistente`
         );
-        throw new Error("Usuario no autenticado o token inexistente");
+        return res
+          .status(401)
+          .send("Usuario no autenticado o token inexistente");
       }
 
       jwt.verify(token, config.privateKey, (error, credential) => {

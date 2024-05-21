@@ -10,4 +10,8 @@ export default class UserRepository {
   findByEmail = (email) => {
     return this.dao.findByEmail(email);
   };
+
+  findUserById = (id) => {
+    return this.dao.findUserById(id);
+  };
 }
