@@ -2,6 +2,7 @@ import express from "express";
 import __dirname from "./dirname.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import session from "express-session";
 import { addLogger } from "./config/logger_custom.js";
 import config from "./config/config.js";
 
@@ -11,16 +12,29 @@ import AuthExtendRouter from "./routes/custom/auth.extend.router.js";
 
 const app = express();
 
-app.use(cookieParser(config.cookiePassword));
+app.use(cookieParser());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
 app.use(
   cors({
     origin: "http://localhost:5173",
     credentials: true,
   })
 );
+
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || config.cookiePassword,
+    resave: false,
+    saveUninitialized: true,
+    cookie: {
+      httpOnly: true,
+    },
+  })
+);
+
 app.use(addLogger);
 
 const usersExtendRouter = new UsersExtendRouter();
