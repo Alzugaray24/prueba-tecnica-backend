@@ -1,4 +1,6 @@
 import { prodService } from "../services/services.js";
+import fs from "fs";
+import db from "../config/database.js";
 
 export const getProductController = async (req, res) => {
   const products = await prodService.getAll();
@@ -72,13 +74,63 @@ export const postProductController = async (req, res) => {
   }
 };
 
+export const postProductsUploadController = async (req, res) => {
+  const filePath = req.file.path;
+
+  fs.readFile(filePath, "utf8", (err, data) => {
+    if (err) {
+      console.error("Error al leer el archivo JSON:", err.message);
+      return res.status(500).send("Error al leer el archivo JSON");
+    }
+
+    try {
+      const jsonData = JSON.parse(data);
+
+      db.serialize(() => {
+        const stmt = db.prepare(`
+          INSERT INTO products (handle, title, description, sku, grams, stock, price, compare_price, barcode) 
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `);
+
+        jsonData.forEach((row) => {
+          stmt.run(
+            row.Handle,
+            row.Title,
+            row.Description,
+            row.SKU,
+            row.Grams,
+            row.Stock,
+            row.Price,
+            row["Compare Price"],
+            row.Barcode
+          );
+        });
+
+        stmt.finalize((err) => {
+          if (err) {
+            console.error("Error al insertar datos:", err.message);
+            return res.status(500).send("Error al insertar datos");
+          }
+          res.send("Archivo cargado e datos importados exitosamente");
+        });
+      });
+    } catch (error) {
+      console.error("Error al analizar el archivo JSON:", error.message);
+      res.status(400).send("Error al analizar el archivo JSON");
+    } finally {
+      fs.unlink(filePath, (err) => {
+        if (err) {
+          console.error("Error al eliminar el archivo:", err.message);
+        }
+      });
+    }
+  });
+};
+
 export const putProductController = async (req, res) => {
   try {
     const { id } = req.params;
     const newProduct = req.body;
-
-    console.log(id);
-    console.log(newProduct);
 
     const updatedProduct = await prodService.update(id, newProduct);
 

@@ -69,4 +69,13 @@ export const getUserIdFromToken = (token) => {
   }
 };
 
+export const parseDescription = (description) => {
+  try {
+    const descriptionObj = JSON.parse(description);
+    return descriptionObj.characteristics;
+  } catch (error) {
+    return null;
+  }
+};
+
 export default __dirname;

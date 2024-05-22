@@ -6,7 +6,7 @@ import {
 
 export default class UsersExtendRouter extends CustomRouter {
   init() {
-    this.get("/", ["PUBLIC"], getAllUsersController);
-    this.get("/profile", ["PUBLIC"], getUserController);
+    this.get("/", ["USER"], getAllUsersController);
+    this.get("/profile", ["USER"], getUserController);
   }
 }

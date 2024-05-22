@@ -1,4 +1,5 @@
 import db from "../../config/database.js";
+import { parseDescription } from "../../dirname.js";
 
 export default class ProductService {
   constructor() {}
@@ -13,7 +14,7 @@ export default class ProductService {
         } else {
           const products = rows.map((row) => ({
             ...row,
-            description: JSON.parse(row.description), // Convertir string a objeto JSON
+            characteristics: parseDescription(row.description),
           }));
           resolve(products);
         }

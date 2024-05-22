@@ -3,10 +3,12 @@ import jwt from "jsonwebtoken";
 import cookieParser from "cookie-parser";
 import config from "../../config/config.js";
 import { getCookie } from "../../middlewars/getCookie.js";
+import multer from "multer";
 
 export default class CustomRouter {
   constructor() {
     this.router = Router();
+    this.upload = multer({ dest: "uploads/" });
     this.init();
   }
 
