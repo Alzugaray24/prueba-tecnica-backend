@@ -4,10 +4,21 @@ import { parseDescription } from "../../dirname.js";
 export default class ProductService {
   constructor() {}
 
-  getAll = () => {
+  getAll = ({ page, limit }) => {
     return new Promise((resolve, reject) => {
-      const query = "SELECT * FROM products";
-      db.all(query, (err, rows) => {
+      if (!page || !limit || page <= 0 || limit <= 0) {
+        reject(new Error("Page and limit must be positive numbers."));
+        return;
+      }
+
+      const offset = (page - 1) * limit;
+      console.log("Page:", page);
+      console.log("Limit:", limit);
+      console.log("Offset:", offset);
+
+      const query = `SELECT * FROM products LIMIT ? OFFSET ?`;
+      console.log(query);
+      db.all(query, [limit, offset], (err, rows) => {
         if (err) {
           console.error("Error al obtener los productos:", err.message);
           reject(err);
@@ -16,6 +27,7 @@ export default class ProductService {
             ...row,
             characteristics: parseDescription(row.description),
           }));
+          console.log(products);
           resolve(products);
         }
       });

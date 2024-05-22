@@ -3,22 +3,43 @@ import fs from "fs";
 import db from "../config/database.js";
 
 export const getProductController = async (req, res) => {
-  const products = await prodService.getAll();
-  if (!products) {
-    req.logger.error(
-      `[${new Date().toLocaleString()}] [POST] ${
-        req.originalUrl
-      } - No existen productos en la base de datos`
-    );
-    return res
-      .status(400)
-      .json({ error: "No existen productos en la base de datos" });
-  }
+  const page = parseInt(req.query.page, 8) || 1;
+  const limit = parseInt(req.query.limit, 8) || 8;
 
-  res.status(200).send({
-    status: "success",
-    products,
-  });
+  try {
+    const products = await prodService.getAll({
+      page,
+      limit,
+    });
+
+    if (!products || products.length === 0) {
+      req.logger.error(
+        `[${new Date().toLocaleString()}] [GET] ${
+          req.originalUrl
+        } - No existen productos en la base de datos`
+      );
+      return res
+        .status(404)
+        .json({ error: "No existen productos en la base de datos" });
+    }
+
+    res.status(200).send({
+      status: "success",
+      page,
+      limit,
+      products,
+    });
+  } catch (error) {
+    req.logger.error(
+      `[${new Date().toLocaleString()}] [GET] ${
+        req.originalUrl
+      } - Error al obtener productos: ${error.message}`
+    );
+    res.status(500).send({
+      status: "error",
+      error: error.message,
+    });
+  }
 };
 
 export const postProductController = async (req, res) => {

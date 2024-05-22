@@ -3,8 +3,8 @@ export default class ProductRepository {
     this.dao = dao;
   }
 
-  getAll = () => {
-    return this.dao.getAll();
+  getAll = ({ page, limit }) => {
+    return this.dao.getAll({ page, limit });
   };
 
   save = (product) => {
