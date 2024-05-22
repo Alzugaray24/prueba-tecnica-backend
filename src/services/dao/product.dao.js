@@ -27,7 +27,6 @@ export default class ProductService {
             ...row,
             characteristics: parseDescription(row.description),
           }));
-          console.log(products);
           resolve(products);
         }
       });
