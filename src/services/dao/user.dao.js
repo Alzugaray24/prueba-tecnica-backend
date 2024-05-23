@@ -25,9 +25,7 @@ export default class UserService {
           console.error("Error al buscar usuario por email:", err.message);
           reject(err);
         } else {
-          if (row) {
-            console.log("Usuario encontrado:", row);
-          } else {
+          if (!row) {
             console.log(
               "No se encontró ningún usuario con el correo electrónico proporcionado."
             );
@@ -46,9 +44,7 @@ export default class UserService {
           console.error("Error al buscar usuario por ID:", err.message);
           reject(err);
         } else {
-          if (row) {
-            console.log("Usuario encontrado:", row);
-          } else {
+          if (!row) {
             console.log(
               "No se encontró ningún usuario con el ID proporcionado."
             );

@@ -12,12 +12,8 @@ export default class ProductService {
       }
 
       const offset = (page - 1) * limit;
-      console.log("Page:", page);
-      console.log("Limit:", limit);
-      console.log("Offset:", offset);
 
       const query = `SELECT * FROM products LIMIT ? OFFSET ?`;
-      console.log(query);
       db.all(query, [limit, offset], (err, rows) => {
         if (err) {
           console.error("Error al obtener los productos:", err.message);
@@ -46,7 +42,7 @@ export default class ProductService {
         compare_price,
         barcode,
       } = product;
-      const descriptionString = JSON.stringify(description); // Convertir objeto JSON a string
+      const descriptionString = JSON.stringify(description);
 
       const query = `
         INSERT INTO products (handle, title, description, sku, grams, stock, price, compare_price, barcode)
@@ -91,7 +87,7 @@ export default class ProductService {
         compare_price,
         barcode,
       } = product;
-      const descriptionString = JSON.stringify(description); // Convertir objeto JSON a string
+      const descriptionString = JSON.stringify(description);
 
       const query = `
         UPDATE products
